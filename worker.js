@@ -133,7 +133,11 @@ export default {
 
         return json({
           success: true,
-          reply: result.response || "No response received"
+          reply:
+  result.response ||
+  result.choices?.[0]?.message?.content ||
+  result.choices?.[0]?.text ||
+  JSON.stringify(result)
         });
 
       } catch (error) {
