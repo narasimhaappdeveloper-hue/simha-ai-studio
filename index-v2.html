@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090d18">
+<title>SIMHA AI Studio</title>
+<style>
+:root{--bg:#090d18;--panel:#111827;--panel2:#172236;--line:#26344c;--text:#edf3ff;--muted:#91a0ba;--accent:#8b6cff;--cyan:#39c6d8;--green:#52d6a0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,Arial;min-height:100dvh}
+button,textarea,input{font:inherit}button{cursor:pointer;color:inherit}
+.shell{min-height:100dvh;display:grid;grid-template-columns:248px 1fr}
+.sidebar{background:#0d1423;border-right:1px solid var(--line);padding:18px 13px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 7px}.logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--cyan));display:grid;place-items:center;font-size:23px;font-weight:900}.brand strong{display:block;font-size:16px}.brand small{color:var(--muted);font-size:11px}
+.new{width:100%;border:1px solid #51418a;background:#241d43;padding:12px;border-radius:12px;text-align:left}
+.navlabel{font-size:10px;color:#71819d;letter-spacing:1.5px;padding:0 9px;margin:3px 0}
+.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;text-align:left;padding:11px;border-radius:10px;color:#b9c5da}.nav button.active,.nav button:hover{background:#1c2940;color:white}.nav button span{display:inline-block;width:26px}
+.sidebottom{margin-top:auto;border-top:1px solid var(--line);padding:14px 8px;color:var(--muted);font-size:11px;line-height:1.6}
+.main{min-width:0;display:flex;flex-direction:column;min-height:100dvh}.top{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#0d1423}.top small{color:var(--green)}.topright{display:flex;gap:8px;align-items:center}.pill{border:1px solid var(--line);border-radius:20px;padding:7px 11px;color:#b8c5da;font-size:11px}
+.content{width:min(1100px,100%);margin:0 auto;padding:26px 22px 35px;flex:1}.view{display:none}.view.active{display:block}
+.hero{text-align:center;padding:24px 10px 20px}.hero .orb{width:64px;height:64px;border-radius:22px;margin:auto;background:linear-gradient(135deg,var(--accent),var(--cyan));display:grid;place-items:center;font-size:30px;font-weight:900;box-shadow:0 10px 45px #7555ee33}.hero h1{font-size:clamp(25px,5vw,36px);margin:18px 0 8px}.gradient{background:linear-gradient(90deg,#b39cff,#56d6e5);color:transparent;background-clip:text}.hero p{color:var(--muted);line-height:1.7;margin:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}.tile{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;text-align:left;min-height:116px}.tile:hover{border-color:#7962d6}.tile .ico{font-size:22px}.tile strong{display:block;margin:9px 0 5px}.tile small{color:var(--muted);line-height:1.5}
+.chatbox{border:1px solid var(--line);background:var(--panel);border-radius:18px;overflow:hidden}.chathead{padding:13px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:#cbd7eb}.messages{height:min(42vh,420px);min-height:230px;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}.msg{max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;padding:12px 14px;border-radius:14px}.msg.user{align-self:flex-end;background:#5140a8}.msg.ai{align-self:flex-start;background:#1c2a40;border:1px solid #2b3b55}.msg.error{color:#ffaaaa}.compose{padding:12px;border-top:1px solid var(--line)}.composebox{display:flex;gap:9px;align-items:flex-end;background:#0c1423;border:1px solid #34435d;border-radius:14px;padding:8px}.compose textarea{flex:1;resize:none;min-height:42px;max-height:130px;background:transparent;color:white;border:0;outline:0;padding:10px}.send,.primary{border:0;background:linear-gradient(135deg,#7659e9,#4b8edb);border-radius:11px;padding:11px 16px;color:white;font-weight:700}.send:disabled{opacity:.5}.hint{font-size:10px;color:#71819d;text-align:center;padding-top:9px}
+.sectiontitle{margin:5px 0 7px;font-size:25px}.sub{color:var(--muted);line-height:1.6;margin:0 0 20px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px;margin:12px 0}.panel h3{margin:0 0 8px}.panel p{color:var(--muted);line-height:1.6}
+.field{width:100%;background:#0b1321;border:1px solid #34435d;color:white;border-radius:10px;padding:12px;margin:7px 0 12px;outline:none}.actions{display:flex;gap:9px;flex-wrap:wrap}.secondary{background:#202d43;border:1px solid #34435d;padding:10px 13px;border-radius:10px}.preview{background:white;color:#172033;border-radius:12px;min-height:220px;overflow:hidden}.preview iframe{width:100%;height:300px;border:0;background:white}.filelist{color:#c6d3e8;line-height:2.1;font-family:ui-monospace,monospace;font-size:12px}
+.notice{background:#18263a;border:1px solid #344760;color:#b9c8df;border-radius:12px;padding:12px;font-size:12px;line-height:1.6}
+.mobilemenu{display:none}
+@media(max-width:760px){.shell{display:block}.sidebar{position:fixed;z-index:10;left:-270px;top:0;bottom:0;width:250px;transition:left .2s;box-shadow:15px 0 40px #0008}.sidebar.open{left:0}.mobilemenu{display:inline-block;background:transparent;border:0;font-size:22px}.top{padding:0 13px}.content{padding:16px 13px 25px}.grid{gap:9px}.tile{padding:13px;min-height:108px}.topright .pill{display:none}}
+@media(min-width:761px){.content{padding-top:34px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" id="sidebar">
+ <div class="brand"><div class="logo">S</div><div><strong>SIMHA AI Studio</strong><small>Build beyond chat</small></div></div>
+ <button class="new" id="newChat">＋ &nbsp; New conversation</button>
+ <div><div class="navlabel">WORKSPACE</div><nav class="nav" id="nav">
+ <button class="active" data-view="home"><span>✦</span> AI Chat</button>
+ <button data-view="builder"><span>⌘</span> App Builder</button>
+ <button data-view="projects"><span>▣</span> Projects</button>
+ <button data-view="tools"><span>⚡</span> AI Tools</button>
+ <button data-view="automate"><span>⟳</span> Automations</button>
+ </nav></div>
+ <div class="sidebottom">SIMHA AI Studio<br><span style="color:#52d6a0">●</span> Connected to your AI backend<br>Free-tier prototype</div>
+</aside>
+<main class="main">
+ <header class="top"><div style="display:flex;align-items:center;gap:10px"><button class="mobilemenu" id="menu">☰</button><strong id="pageTitle">AI Chat</strong></div><div class="topright"><span class="pill">Telugu + English</span><span class="pill">Free tier</span></div></header>
+ <div class="content">
+  <section class="view active" id="home">
+   <div class="hero"><div class="orb">S</div><h1>What can we <span class="gradient">create today?</span></h1><p>Talk naturally. Plan ideas. Build apps. Explore what AI can do.<br>తెలుగు లేదా Englishలో మీ పని చెప్పండి.</p></div>
+   <div class="grid">
+    <button class="tile" data-prompt="Help me create a complete mobile-friendly business management app. First ask me the essential questions."><span class="ico">🏪</span><strong>Business AI</strong><small>Sales, stock, orders and business workflows</small></button>
+    <button class="tile" data-prompt="Help me build a website or app from my idea, step by step."><span class="ico">⌘</span><strong>Build an App</strong><small>Create websites and software from a prompt</small></button>
+    <button class="tile" data-prompt="Analyze this idea and suggest an automation workflow."><span class="ico">⚡</span><strong>AI Automation</strong><small>Turn repetitive tasks into workflows</small></button>
+   </div>
+   <div class="chatbox"><div class="chathead"><span>✦ SIMHA Assistant</span><span style="color:var(--green)">● Ready</span></div><div class="messages" id="messages"><div class="msg ai">నమస్కారం! నేను SIMHA AI. మీ ఆలోచనను వివరించండి. దాన్ని ప్లాన్ చేయడంలో, కోడ్ తయారీలో, వ్యాపార పనుల్లో సహాయం చేస్తాను.</div></div><div class="compose"><div class="composebox"><textarea id="prompt" rows="1" placeholder="Message SIMHA AI..."></textarea><button class="send" id="send">➤</button></div><div class="hint">AI సమాధానాలు తప్పులు కలిగి ఉండవచ్చు. ముఖ్యమైన విషయాలు తనిఖీ చేయండి.</div></div></div>
+  </section>
+  <section class="view" id="builder">
+   <h2 class="sectiontitle">AI App Builder</h2><p class="sub">Describe the app you want. SIMHA will help plan the build. This first version connects to the existing chat AI; file generation and execution will be added in later stages.</p>
+   <div class="panel"><h3>What do you want to build?</h3><textarea class="field" id="appIdea" rows="4" placeholder="Example: Create a shop management app with sales, expenses, stock and reports..."></textarea><div class="actions"><button class="primary" id="planApp">Create build plan ↗</button><button class="secondary" id="sampleApp">Use example</button></div></div>
+   <div class="panel"><h3>Build workspace</h3><div class="notice">Next milestone: generate real project files, display a file tree, run a safe live preview, and test changes. These capabilities are not active yet.</div><div class="filelist" style="margin-top:12px">📁 Your project<br>　└── Waiting for your first build plan</div></div>
+  </section>
+  <section class="view" id="projects"><h2 class="sectiontitle">Your Projects</h2><p class="sub">Projects created in SIMHA AI Studio will appear here.</p><div class="panel"><h3>📁 No saved projects yet</h3><p>Start in App Builder. Project cloud storage and version history are planned for a later milestone.</p><button class="primary" data-goto="builder">Open App Builder</button></div></section>
+  <section class="view" id="tools"><h2 class="sectiontitle">AI Tools</h2><p class="sub">Choose a task to start a guided conversation.</p><div class="grid">
+   <button class="tile" data-prompt="Act as a data analyst. Explain how I can analyze an Excel attendance sheet and create a monthly dashboard."><span class="ico">📊</span><strong>Data Analyst</strong><small>Analyze tables and plan reports</small></button>
+   <button class="tile" data-prompt="Act as a software debugger. Help me diagnose this error. Ask me for the error details."><span class="ico">🛠️</span><strong>Code Helper</strong><small>Understand and troubleshoot code</small></button>
+   <button class="tile" data-prompt="Help me design an AI automation workflow for a small business."><span class="ico">🔁</span><strong>Workflow Designer</strong><small>Plan repeatable business processes</small></button>
+   <button class="tile" data-prompt="Help me write clear professional content in Telugu and English."><span class="ico">✍️</span><strong>Writing Assistant</strong><small>Create and improve content</small></button>
+   <button class="tile" data-prompt="Help me plan a mobile-friendly website with a modern user interface."><span class="ico">🎨</span><strong>UI Designer</strong><small>Plan screens and user experience</small></button>
+   <button class="tile" data-prompt="Teach me a technical topic step by step in simple Telugu."><span class="ico">📚</span><strong>Learning Coach</strong><small>Learn step by step</small></button>
+  </div><div class="notice">Image generation, file analysis, and external app actions require additional connected services. They are not falsely shown as active in this prototype.</div></section>
+  <section class="view" id="automate"><h2 class="sectiontitle">AI Automations</h2><p class="sub">Design workflows with SIMHA. Actual background execution and app integrations will be enabled only after secure tool connections are implemented.</p><div class="panel"><h3>Start with a workflow idea</h3><textarea class="field" id="flowIdea" rows="3" placeholder="Example: When a new order arrives, record it and notify me..."></textarea><button class="primary" id="planFlow">Design my workflow ↗</button></div><div class="notice">No automation runs in the background yet. SIMHA will first help you design and validate the steps.</div></section>
+ </div>
+</main>
+</div>
+<script>
+const API_URL="https://simha-ai-web.narasimha-appdeveloper.workers.dev/api/chat";
+const $=id=>document.getElementById(id);
+const messages=$("messages"), promptBox=$("prompt"), sendBtn=$("send");
+let busy=false;
+function switchView(name){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===name));document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===name));$("pageTitle").textContent=({home:"AI Chat",builder:"App Builder",projects:"Projects",tools:"AI Tools",automate:"Automations"})[name]||"SIMHA AI";$("sidebar").classList.remove("open");}
+$("nav").addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(b)switchView(b.dataset.view)});
+$("menu").onclick=()=>$("sidebar").classList.toggle("open");
+document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>switchView(b.dataset.goto));
+function addMessage(text,role){const el=document.createElement("div");el.className="msg "+role;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
+async function sendMessage(text){text=(text||"").trim();if(!text||busy)return;addMessage(text,"user");promptBox.value="";promptBox.style.height="auto";busy=true;sendBtn.disabled=true;const wait=addMessage("SIMHA is thinking...","ai");
+try{const res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text})});const data=await res.json();if(!res.ok||!data.success){wait.textContent="AI error: "+(data.error||"Request failed");wait.classList.add("error")}else wait.textContent=data.reply||"No response received."}
+catch(e){wait.textContent="Could not connect to SIMHA AI. Check your internet or try again.";wait.classList.add("error")}
+finally{busy=false;sendBtn.disabled=false;promptBox.focus();messages.scrollTop=messages.scrollHeight}}
+sendBtn.onclick=()=>sendMessage(promptBox.value);
+promptBox.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage(promptBox.value)}};
+promptBox.oninput=()=>{promptBox.style.height="auto";promptBox.style.height=Math.min(promptBox.scrollHeight,120)+"px"};
+document.querySelectorAll("[data-prompt]").forEach(b=>b.onclick=()=>{switchView("home");sendMessage(b.dataset.prompt)});
+$("newChat").onclick=()=>{messages.innerHTML="";addMessage("కొత్త సంభాషణ ప్రారంభమైంది. మీ పని చెప్పండి.","ai");switchView("home")};
+$("sampleApp").onclick=()=>$("appIdea").value="Create a mobile-friendly shop management app with sales, purchases, expenses, customers, stock and monthly reports.";
+$("planApp").onclick=()=>{const v=$("appIdea").value.trim();if(v){switchView("home");sendMessage("I want to build this application. First create a clear implementation plan, list the screens, data fields, and features. Do not claim files have been created yet.\n\n"+v)}};
+$("planFlow").onclick=()=>{const v=$("flowIdea").value.trim();if(v){switchView("home");sendMessage("Help me design this automation. Give trigger, steps, required permissions, failure handling, and free-tier options. Do not claim it is running.\n\n"+v)}};
+</script>
+</body>
+</html>
