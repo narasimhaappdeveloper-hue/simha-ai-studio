@@ -135,29 +135,78 @@ textarea::placeholder{color:#8998b2}
 </div>
 
 <script>
+
 const API_URL = "https://simha-ai-web.narasimha-appdeveloper.workers.dev/api/chat";
+const STORAGE_KEY = "simha_ai_chats_v1";
 
 const messages = document.getElementById("messages");
 const promptBox = document.getElementById("prompt");
 const sendBtn = document.getElementById("send");
 const welcome = document.getElementById("welcome");
+
+let chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let currentChat = null;
 let busy = false;
+
+function saveChats() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+}
+
+function createChat() {
+  currentChat = {
+    id: Date.now().toString(),
+    title: "New Chat",
+    messages: [],
+    updated: Date.now()
+  };
+  chats.unshift(currentChat);
+  saveChats();
+}
+
+function saveMessage(role, text) {
+  if (!currentChat) createChat();
+
+  currentChat.messages.push({ role, text });
+  currentChat.updated = Date.now();
+
+  if (role === "user" && currentChat.title === "New Chat") {
+    currentChat.title = text.slice(0, 35);
+  }
+
+  saveChats();
+}
 
 function addMessage(text, type) {
   welcome.style.display = "none";
+
   const el = document.createElement("div");
   el.className = "message " + type;
   el.textContent = text;
+
   messages.appendChild(el);
   messages.scrollTop = messages.scrollHeight;
   return el;
+}
+
+function showChat(chat) {
+  currentChat = chat;
+  messages.innerHTML = "";
+  welcome.style.display = chat.messages.length ? "none" : "block";
+
+  chat.messages.forEach(item => {
+    addMessage(item.text, item.role === "user" ? "user" : "ai");
+  });
 }
 
 async function sendMessage(text) {
   text = text.trim();
   if (!text || busy) return;
 
+  if (!currentChat) createChat();
+
   addMessage(text, "user");
+  saveMessage("user", text);
+
   promptBox.value = "";
   promptBox.style.height = "auto";
   busy = true;
@@ -168,11 +217,12 @@ async function sendMessage(text) {
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({message: text})
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
     });
 
     const data = await response.json();
+
     loading.classList.remove("typing");
 
     if (!response.ok || !data.success) {
@@ -180,10 +230,11 @@ async function sendMessage(text) {
       loading.classList.add("error");
     } else {
       loading.textContent = data.reply || "No response received.";
+      saveMessage("ai", loading.textContent);
     }
   } catch (error) {
     loading.classList.remove("typing");
-    loading.textContent = "Connection failed. Please check your internet and try again.";
+    loading.textContent = "Connection failed. Please try again.";
     loading.classList.add("error");
   } finally {
     busy = false;
@@ -193,31 +244,132 @@ async function sendMessage(text) {
   }
 }
 
-sendBtn.addEventListener("click", () => sendMessage(promptBox.value));
+// History button
+const historyBtn = document.createElement("button");
+historyBtn.textContent = "☰ History";
+historyBtn.className = "newchat";
+historyBtn.style.marginRight = "7px";
+document.querySelector("header").insertBefore(
+  historyBtn,
+  document.getElementById("newChat")
+);
 
-promptBox.addEventListener("keydown", event => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    sendMessage(promptBox.value);
+// History panel
+const historyPanel = document.createElement("div");
+historyPanel.style.cssText = `
+  position:fixed;inset:0;background:#080d1c;
+  z-index:1000;padding:20px;display:none;
+  overflow-y:auto;color:white;font-family:Arial
+`;
+
+historyPanel.innerHTML = `
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2>Chat History</h2>
+    <button id="closeHistory" class="newchat">Close ✕</button>
+  </div>
+  <div id="historyList"></div>
+`;
+
+document.body.appendChild(historyPanel);
+
+function renderHistory() {
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+
+  if (!chats.length) {
+    list.textContent = "No previous chats yet.";
+    return;
   }
-});
 
-promptBox.addEventListener("input", () => {
-  promptBox.style.height = "auto";
-  promptBox.style.height = Math.min(promptBox.scrollHeight, 110) + "px";
-});
+  chats.forEach(chat => {
+    const item = document.createElement("div");
+    item.style.cssText = `
+      display:flex;gap:8px;align-items:center;
+      background:#202d45;padding:13px;margin:10px 0;
+      border-radius:12px
+    `;
 
-document.getElementById("newChat").addEventListener("click", () => {
+    const open = document.createElement("button");
+    open.textContent = chat.title;
+    open.style.cssText = `
+      flex:1;text-align:left;background:transparent;
+      border:0;color:white;padding:8px;font-size:14px
+    `;
+
+    open.onclick = () => {
+      showChat(chat);
+      historyPanel.style.display = "none";
+    };
+
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.style.cssText = `
+      background:#713747;color:white;border:0;
+      padding:9px;border-radius:8px
+    `;
+
+    del.onclick = () => {
+      if (!confirm("Delete this chat?")) return;
+      chats = chats.filter(c => c.id !== chat.id);
+      if (currentChat && currentChat.id === chat.id) {
+        currentChat = null;
+        messages.innerHTML = "";
+        welcome.style.display = "block";
+      }
+      saveChats();
+      renderHistory();
+    };
+
+    item.append(open, del);
+    list.appendChild(item);
+  });
+}
+
+historyBtn.onclick = () => {
+  renderHistory();
+  historyPanel.style.display = "block";
+};
+
+document.getElementById("closeHistory").onclick = () => {
+  historyPanel.style.display = "none";
+};
+
+// New Chat
+document.getElementById("newChat").onclick = () => {
+  currentChat = null;
   messages.innerHTML = "";
   welcome.style.display = "block";
   promptBox.value = "";
   promptBox.focus();
-});
+};
 
-document.getElementById("suggestions").addEventListener("click", event => {
+// Send message
+sendBtn.onclick = () => sendMessage(promptBox.value);
+
+promptBox.onkeydown = event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage(promptBox.value);
+  }
+};
+
+promptBox.oninput = () => {
+  promptBox.style.height = "auto";
+  promptBox.style.height =
+    Math.min(promptBox.scrollHeight, 110) + "px";
+};
+
+// Suggested messages
+document.getElementById("suggestions").onclick = event => {
   const button = event.target.closest("button[data-msg]");
   if (button) sendMessage(button.dataset.msg);
-});
+};
+
+// Restore latest chat when page opens
+if (chats.length) {
+  showChat(chats[0]);
+}
+
 </script>
 </body>
 </html>
