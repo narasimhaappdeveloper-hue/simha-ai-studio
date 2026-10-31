@@ -155,7 +155,7 @@ export default {
               }
             ],
 
-            max_completion_tokens: 1200,
+            max_completion_tokens: 4096,
             reasoning_effort: "low",
 
             chat_template_kwargs: {
